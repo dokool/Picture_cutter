@@ -54,15 +54,11 @@ def convert_to_pdf(pictures):
             output_filename = "pdf_output.pdf"
             break
 
-    if pictures:
-        print(pictures)
-        print('Преобразование в pdf файл...')
-        with open(pathlib.Path('output', output_filename), "wb") as f:
-            f.write(img2pdf.convert(pictures))
-        print('Фотограции преобразованы в pdf файл.')
-        print('Результат находится в', pathlib.Path('output', output_filename))
-    else:
-        print('Нет файлов в папке output.')
+    print('Преобразование в pdf файл...')
+    with open(pathlib.Path('output', output_filename), "wb") as f:
+        f.write(img2pdf.convert(pictures))
+    print('Фотограции преобразованы в pdf файл.')
+    print('Результат находится в', pathlib.Path('output', output_filename))
 
 
 def main():
@@ -70,7 +66,7 @@ def main():
     dir_path = pathlib.Path.cwd()
     path = pathlib.Path(dir_path, "input")
     output_path = pathlib.Path(dir_path, "output")
-    pictures = os.listdir(path)
+    pictures = [el for el in os.listdir(path) if el != '.gitkeep']
     print('Всего найдено {0} фотографий:'.format(len(pictures)), pictures)
 
     while True:
@@ -112,11 +108,16 @@ def main():
             continue
 
     while True:
-        x = input("Вы хотите создать PDF файл из этих фотографий? Y/n: ")
+        x = 'n'
+        pictures = [str(pathlib.Path('output', x))
+                    for x in os.listdir('output')
+                    if os.path.splitext(x)[1] != '.pdf'
+                    and x != '.gitkeep']
+        if pictures:
+            x = input("Вы хотите создать PDF файл из этих фотографий? Y/n: ")
+        else:
+            print('Нет файлов в папке output')
         if x == 'y' or x == "":
-            pictures = [str(pathlib.Path('output', x))
-                        for x in os.listdir(output_path)
-                        if os.path.splitext(x)[1] != '.pdf']
             convert_to_pdf(pictures)
             break
         elif x == "n":
@@ -129,7 +130,7 @@ def main():
         x = input("Вы хотите удалить временные файлы из папки output? y/N: ")
         if x == 'y':
             for x in os.listdir('output'):
-                if os.path.splitext(x)[1] != '.pdf':
+                if os.path.splitext(x)[1] != '.pdf' and x != '.gitkeep':
                     print('Удаление', pathlib.Path('output', x))
                     os.remove(pathlib.Path('output', x))
             break
@@ -143,7 +144,7 @@ def main():
         x = input("Вы хотите удалить изначальные файлы из папки input? y/N: ")
         if x == 'y':
             for x in os.listdir('input'):
-                if os.path.splitext(x)[1] != '.pdf':
+                if os.path.splitext(x)[1] != '.pdf' and x != '.gitkeep':
                     print('Удаление', pathlib.Path('input', x))
                     os.remove(pathlib.Path('input', x))
             break
