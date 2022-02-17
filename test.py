@@ -63,10 +63,7 @@ def convert_to_pdf(pictures):
 
 def main():
 
-    dir_path = pathlib.Path.cwd()
-    path = pathlib.Path(dir_path, "input")
-    output_path = pathlib.Path(dir_path, "output")
-    pictures = [el for el in os.listdir(path) if el != '.gitkeep']
+    pictures = [el for el in os.listdir("input") if el != '.gitkeep']
     print('Всего найдено {0} фотографий:'.format(len(pictures)), pictures)
 
     while True:
