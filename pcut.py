@@ -48,6 +48,14 @@ def convert_to_pdf(pictures, output_filename="pdf_output"):
     return path
 
 
+def copy_photo(pic):
+    photo_path = pathlib.Path('input', pic)
+    photo = Image.open(photo_path)
+    first_photo_path = pathlib.Path('output', pic)
+    photo.save(first_photo_path)
+    return first_photo_path
+
+
 def main():
     pass
 

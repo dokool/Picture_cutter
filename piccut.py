@@ -1,9 +1,14 @@
 import click
 import os
+import pathlib
 import pcut
+
+supported_types = ['.png', '.jpg']
 
 
 @click.command()
+@click.option('--no-cut', '-n', is_flag=True, default=False, show_default=True,
+              help='Скопировать фотографии из input в output')
 @click.option('--cut-in-half/--right-part-only', '-c/-r', 'cut_type',
               default=True, show_default=True,
               help='Разрезает фотографии из папки input на две части.\n\
@@ -29,28 +34,31 @@ import pcut
                                 case_sensitive=False),
               help='Удаляет исходные/промежуточные/все/(не удалять) файлы.')
 def pcut_cli(cut_type, angle, output_name, start, end, convert_to_pdf,
-             delete):
-    """CLI for picture_cutter programm"""
+             delete, no_cut):
+    """Программа разрезает и поворачивает фотографии.
+        Делает из этих фотографий pdf файл.
+        Поддерживает форматы фотографий: '.png', '.jpg'
+    """
     coinfirmation_text = generate_coinfirmation_text(cut_type, angle,
                                                      output_name,
                                                      convert_to_pdf,
-                                                     delete)
+                                                     delete, no_cut)
     click.echo(coinfirmation_text)
     if click.confirm('Вы хотите продолжить?'):
         pass
     else:
         return
-    supported_types = ['.png', '.jpg']
     pictures = [el for el in os.listdir("input")
                 if os.path.splitext(el)[1] in supported_types]
     num_of_pictures = len(pictures)
     if num_of_pictures:
         click.echo(f'В папке input найдено {num_of_pictures} фотографий:' +
                    str(pictures))
-        cli_cut(cut_type, pictures, angle, start, end)
+        cli_cut(cut_type, pictures, angle, start, end, no_cut)
     else:
         click.echo('В папке input нет фотографий.')
-    out_pictures = [el for el in os.listdir("output")
+    out_pictures = [str(pathlib.Path('output', el))
+                    for el in os.listdir('output')
                     if os.path.splitext(el)[1] in supported_types]
     num_of_pictures = len(out_pictures)
     if num_of_pictures:
@@ -61,20 +69,26 @@ def pcut_cli(cut_type, angle, output_name, start, end, convert_to_pdf,
             click.secho('Сохраняется в ' + str(path), fg='green')
     else:
         click.echo('В папке output нет фотографий.')
+    if delete != 'no':
+        delete_photo(delete)
 
 
-def generate_coinfirmation_text(cutType, angle, name, pdf, delete):
+def generate_coinfirmation_text(cutType, angle, name, pdf, delete, skip):
     text = ''
-    if cutType:
-        text += 'Разрезать фотографии пополам'
+    if skip:
+        text += 'Скопировать фотографии из input в output. '
     else:
-        text += 'Разрезать фотографии, оставив только правую часть'
-    if angle == 'right':
-        text += ', повернув их вправо. '
-    elif angle == 'left':
-        text += ', повернув их влево. '
-    else:
-        text += '. '
+        if cutType:
+            text += 'Разрезать фотографии пополам'
+        else:
+            text += 'Разрезать фотографии, оставив только правую часть'
+    if not skip:
+        if angle == 'right':
+            text += ', повернув их вправо. '
+        elif angle == 'left':
+            text += ', повернув их влево. '
+        else:
+            text += '. '
     if pdf:
         text += f'Создать pdf файл в папке output с именем {name}. '
     if delete == 'all':
@@ -86,8 +100,14 @@ def generate_coinfirmation_text(cutType, angle, name, pdf, delete):
     return text
 
 
-def cli_cut(cut_type, pictures, angle, start, end):
+def cli_cut(cut_type, pictures, angle, start, end, skip):
+
     num_of_pictures = len(pictures)
+    if skip:
+        for pic in pictures:
+            path = pcut.copy_photo(pic)
+            click.secho(f'{pic} копируется в output', fg='yellow')
+        return
     degrees = 0
     if angle == 'right':
         degrees = 270
@@ -112,6 +132,32 @@ def cli_cut(cut_type, pictures, angle, start, end):
         for pic in pictures[start_of:end_of]:
             path = pcut.cut_and_rotate(pic, degrees)
             click.secho('Сохраняется в ' + str(path), fg='green')
+
+
+def delete_photo(delete):
+    if delete == 'output':
+        delete_output()
+    elif delete == 'input':
+        delete_input()
+    elif delete == 'all':
+        delete_input()
+        delete_output()
+
+
+def delete_output():
+    for x in os.listdir('output'):
+        if os.path.splitext(x)[1] in supported_types:
+            click.secho('Удаляется ' + str(pathlib.Path('output', x)),
+                        fg='red')
+            os.remove(pathlib.Path('output', x))
+
+
+def delete_input():
+    for x in os.listdir('input'):
+        if os.path.splitext(x)[1] in supported_types:
+            click.secho('Удаляется ' + str(pathlib.Path('input', x)),
+                        fg='red')
+            os.remove(pathlib.Path('input', x))
 
 
 if __name__ == "__main__":
