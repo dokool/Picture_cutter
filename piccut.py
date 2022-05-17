@@ -3,7 +3,7 @@ import os
 import pathlib
 import pcut
 
-supported_types = ['.png', '.jpg']
+supported_types = ['.png', '.jpg', '.JPG', '.PNG', '.JPEG', ".jpeg"]
 
 
 @click.command()
