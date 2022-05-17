@@ -35,9 +35,9 @@ supported_types = ['.png', '.jpg', '.JPG', '.PNG', '.JPEG', ".jpeg"]
               help='Удаляет исходные/промежуточные/все/(не удалять) файлы.')
 def pcut_cli(cut_type, angle, output_name, start, end, convert_to_pdf,
              delete, no_cut):
-    """Программа разрезает и поворачивает фотографии.
+    f"""Программа разрезает и поворачивает фотографии.
         Делает из этих фотографий pdf файл.
-        Поддерживает форматы фотографий: '.png', '.jpg'
+        Поддерживает форматы фотографий: {supported_types}
     """
     coinfirmation_text = generate_coinfirmation_text(cut_type, angle,
                                                      output_name,
